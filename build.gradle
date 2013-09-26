@@ -1,0 +1,99 @@
+version = '1.0'
+defaultTasks 'clean', 'build'
+apply plugin: "java"
+apply plugin: "idea"
+sourceCompatibility = 1.5
+ext.rundeckPluginVersion = '1.1'
+
+configurations {
+    //declare custom pluginLibs configuration to include only libs for this plugin
+    pluginLibs
+
+    //declare compile to extend from pluginLibs so it inherits the dependencies
+    compile {
+        extendsFrom pluginLibs
+    }
+}
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.rundeck:rundeck-core:1.6.2'
+    pluginLibs 'org.igniterealtime.smack:smack:3.2.1'
+    pluginLibs 'org.igniterealtime.smack:smackx:3.2.1'
+}
+
+// task to copy plugin libs to output/lib dir
+task copyToLib(type: Copy) {
+    into "$buildDir/output/lib"
+    from configurations.pluginLibs
+}
+
+ext.pluginClassNames = 'org.rundeck.plugins.notification.JabberNotificationPlugin'
+jar {
+    from "$buildDir/output"
+    manifest {
+        attributes 'Rundeck-Plugin-Classnames': pluginClassNames
+        attributes 'Rundeck-Plugin-File-Version': version
+        attributes 'Rundeck-Plugin-Version': rundeckPluginVersion, 'Rundeck-Plugin-Archive': 'true'
+        def libList = configurations.pluginLibs.collect { 'lib/' + it.name }.join(' ')
+        attributes 'Rundeck-Plugin-Libs': "${libList}"
+    }
+}
+//set jar task to depend on copyToLib
+jar.dependsOn(copyToLib)
+
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.0'
+}
+
+
+
+apply plugin: 'maven'
+task createPom << {
+    pom {
+        project {
+            artifactId 'rundeck-jabber-notification-plugin'
+            groupId "com.dtolabs.rundeck"
+            inceptionYear '2013'
+            packaging 'jar'
+            version version
+            name "RunDeck Jabber Notification Plugin"
+            url 'http://rundeck.org'
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+            parent {
+                groupId 'com.dtolabs.rundeck'
+                artifactId "rundeck-bundled-plugins"
+                version(version)
+            }
+            build {
+                plugins {
+                    plugin {
+                        groupId 'org.apache.maven.plugins'
+                        artifactId 'maven-jar-plugin'
+                        version '2.3.2'
+                        configuration {
+                            archive {
+                                manifestEntries {
+                                    'Rundeck-Plugin-Classnames'(pluginClassNames)
+                                    'Rundeck-Plugin-File-Version' version
+                                    'Rundeck-Plugin-Version' rundeckPluginVersion
+                                    'Rundeck-Plugin-Archive' 'true'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }.writeTo("pom.xml")
+}
