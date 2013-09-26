@@ -13,10 +13,10 @@ import org.jivesoftware.smackx.muc.MultiUserChat;
 import java.util.Map;
 
 /**
- * $INTERFACE is ... User: greg Date: 9/26/13 Time: 12:13 PM
+ * Jabber Notification plugin
  */
 @Plugin(name = JabberNotificationPlugin.NAME, service = ServiceNameConstants.Notification)
-@PluginDescription(title = "Jabber", description = "Notify a Jabber ID")
+@PluginDescription(title = "Jabber", description = "Notify a Jabber ID or Chat room")
 public class JabberNotificationPlugin implements NotificationPlugin {
     public static final String NAME = "jabber-xmpp";
     private static final String DEFAULT_RESOURCE_NAME = "rundeck";
@@ -91,7 +91,6 @@ public class JabberNotificationPlugin implements NotificationPlugin {
         if (isBlank(resourceName)) {
             resourceName = DEFAULT_RESOURCE_NAME;
         }
-        System.err.println("config: " + configuration + " " + this);
 
         ConnectionConfiguration config = new ConnectionConfiguration(hostname, port);
         config.setCompressionEnabled(true);
@@ -133,6 +132,14 @@ public class JabberNotificationPlugin implements NotificationPlugin {
         }
     }
 
+    /**
+     * Send message to single user
+     * @param trigger
+     * @param executionData
+     * @param configuration
+     * @param connection
+     * @throws XMPPException
+     */
     private void sendSingleUserChat(String trigger, Map executionData, Map configuration, XMPPConnection
             connection) throws XMPPException {
         ChatManager chatmanager = connection.getChatManager();
@@ -144,11 +151,18 @@ public class JabberNotificationPlugin implements NotificationPlugin {
         newChat.sendMessage(generateMessage(trigger, executionData));
     }
 
+    /**
+     * Send message to chat room
+     * @param trigger
+     * @param executionData
+     * @param configuration
+     * @param connection
+     * @throws XMPPException
+     */
     private void sendMultiUserChat(String trigger, Map executionData, Map configuration, XMPPConnection
             connection) throws XMPPException {
         MultiUserChat muc2 = new MultiUserChat(connection, chatroomJabberId);
-        // User2 joins the new room
-        // The room service will decide the amount of history to send
+        // join with password if set
         if (isBlank(chatroomPassword)) {
             muc2.join(chatroomNickname);
         } else {
@@ -162,12 +176,19 @@ public class JabberNotificationPlugin implements NotificationPlugin {
         return null == string || "".equals(string);
     }
 
+    /**
+     * Format the message to send
+     * @param trigger
+     * @param executionData
+     * @return
+     */
     private String generateMessage(String trigger, Map executionData) {
         Object job = executionData.get("job");
         Map jobdata = (Map) job;
         Object groupPath = jobdata.get("group");
         Object jobname = jobdata.get("name");
-        String jobdesc = (groupPath != null && !"".equals(groupPath) ? groupPath + "/" : "") + jobname;
+        String jobdesc = (!isBlank(groupPath.toString()) ? groupPath + "/" : "") + jobname;
+
         return "[" + trigger.toUpperCase() + "] " + jobdesc + " run by " + executionData.get("user") + ": " +
                 executionData.get("href");
     }
