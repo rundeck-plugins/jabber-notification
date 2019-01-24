@@ -35,6 +35,14 @@ ext.pluginClassNames = 'org.rundeck.plugins.notification.JabberNotificationPlugi
 jar {
     from "$buildDir/output"
     manifest {
+        attributes 'Rundeck-Plugin-Name': 'Jabber Notification Plugin'
+        attributes 'Rundeck-Plugin-Description': 'Notifies a Jabber ID or a Multi-user Chat room about Job status.'
+        attributes 'Rundeck-Plugin-Rundeck-Compatibility-Version': '2.x'
+        attributes 'Rundeck-Plugin-Tags': 'java,notification'
+        attributes 'Rundeck-Plugin-License': 'Apache 2.0'
+        attributes 'Rundeck-Plugin-Source-Link': 'https://github.com/rundeck-plugins/jabber-notification'
+        attributes 'Rundeck-Plugin-Target-Host-Compatibility': 'all'
+        attributes 'Rundeck-Plugin-Author': 'Rundeck, Inc.'
         attributes 'Rundeck-Plugin-Classnames': pluginClassNames
         attributes 'Rundeck-Plugin-File-Version': version
         attributes 'Rundeck-Plugin-Version': rundeckPluginVersion, 'Rundeck-Plugin-Archive': 'true'
@@ -84,6 +92,14 @@ task createPom << {
                         configuration {
                             archive {
                                 manifestEntries {
+                                    'Rundeck-Plugin-Name' 'Jabber Notification Plugin'
+                                    'Rundeck-Plugin-Description' 'Notifies a Jabber ID or a Multi-user Chat room about Job status.'
+                                    'Rundeck-Plugin-Rundeck-Compatibility-Version' '2.x'
+                                    'Rundeck-Plugin-Tags' 'java,notification'
+                                    'Rundeck-Plugin-License' 'Apache 2.0'
+                                    'Rundeck-Plugin-Source-Link' 'https://github.com/rundeck-plugins/jabber-notification'
+                                    'Rundeck-Plugin-Target-Host-Compatibility' 'all'
+                                    'Rundeck-Plugin-Author' 'Rundeck, Inc.'
                                     'Rundeck-Plugin-Classnames'(pluginClassNames)
                                     'Rundeck-Plugin-File-Version' version
                                     'Rundeck-Plugin-Version' rundeckPluginVersion
